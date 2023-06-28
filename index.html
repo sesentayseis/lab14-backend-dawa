@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Carga de archivos</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 500px;
+      margin-top: 50px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    #error-message {
+      margin-top: 10px;
+    }
+  </style>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; font-src 'self'">
+
+</head>
+<body>
+  <div class="container">
+    <h1>Carga de archivos</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="file-input">Seleccionar archivos</label>
+        <input type="file" id="file-input" name="files" class="form-control-file" multiple />
+
+    </div>
+      <div id="error-message" style="color: red;"></div>
+      <button type="submit" id="submit-btn" class="btn btn-primary">Cargar</button>
+    </form>
+    <div id="upload-message" style="margin-top: 10px;"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file-input');
+    const errorMessage = document.getElementById('error-message');
+    const submitBtn = document.getElementById('submit-btn');
+    const uploadMessage = document.getElementById('upload-message');
+
+    fileInput.addEventListener('change', function () {
+      errorMessage.textContent = ''; // Limpiar el mensaje de error previo
+
+      const files = fileInput.files;
+      if (files.length > 0) {
+        const allowedFileTypes = ['image/jpeg', 'image/png'];
+        const maxFileSize = 100 * 1024; // 100 KB (100 * 1024 bytes)
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          if (!allowedFileTypes.includes(file.type)) {
+            errorMessage.textContent = 'Tipo de archivo no válido. Solo se permiten archivos JPEG (.jpg, .jpeg) y PNG (.png).';
+            submitBtn.disabled = true; // Bloquear el botón de envío
+            return; // Salir del bucle si se encuentra un archivo no válido
+          } else if (file.size > maxFileSize) {
+            errorMessage.textContent = 'Uno o más archivos exceden el tamaño máximo permitido (100 KB).';
+            submitBtn.disabled = true; // Bloquear el botón de envío
+            return; // Salir del bucle si se encuentra un archivo que excede el tamaño máximo
+          }
+        }
+
+        // Si no hay archivos inválidos, habilitar el botón de envío
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Manejar el envío del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault(); // Evitar que se envíe el formulario de forma tradicional
+
+      const formData = new FormData(form);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        uploadMessage.textContent = 'Los archivos se cargaron correctamente.';
+      } else {
+        uploadMessage.textContent = 'Error al cargar los archivos.';
+      }
+    });
+  </script>
+</body>
+</html>
